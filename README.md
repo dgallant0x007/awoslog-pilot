@@ -2,6 +2,10 @@
 
 A free, private flight tracker for general aviation pilots. Share your position with the people you choose — no one else.
 
+<p align="center">
+  <img src="assets/screenshot-android.png" alt="AWOSLOG Pilot Tracker" width="300">
+</p>
+
 ## The Problem
 
 Pilots have two options for sharing their position with family: expensive satellite messengers that cost hundreds per year with limited breadcrumbs, or ADS-B which broadcasts your every move to the entire internet where commercial services monetize your location data without your consent.
