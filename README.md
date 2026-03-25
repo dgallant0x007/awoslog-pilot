@@ -50,6 +50,10 @@ Share link -> family watches on a live map
 
 ## What Your Family Sees
 
+<p align="center">
+  <img src="assets/screenshot-webui.jpg" alt="AWOSLOG Pilot Tracker — Share Page" width="700">
+</p>
+
 The share link opens a full-screen map showing:
 - Your aircraft icon moving in real time
 - A green breadcrumb trail of your flight path
