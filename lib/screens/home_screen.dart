@@ -6,6 +6,7 @@ import '../models/position.dart';
 import '../services/gps_service.dart';
 import '../services/buffer_service.dart';
 import '../services/push_service.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _init() async {
     await _buffer.init();
+    await NotificationService.init();
     _settings = await AppSettings.load();
     _tailController.text = _settings.tail;
     _pilotController.text = _settings.pilot;
@@ -87,6 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Clear buffer from previous session.
     await _buffer.clearAll();
+
+    // Request notification permission.
+    await NotificationService.requestPermission();
 
     // Start GPS.
     _gps.start(onPosition: (pos) async {

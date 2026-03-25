@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/position.dart';
 import 'buffer_service.dart';
@@ -78,6 +79,9 @@ class PushService {
         'positions': positions.map((p) => p.toJson()).toList(),
       });
 
+      debugPrint('PUSH: sending ${positions.length} positions to $_pushUrl');
+      debugPrint('PUSH: track_id=${_getTrackId()} tail=${_getTail()}');
+
       final response = await http
           .post(
             Uri.parse(_pushUrl),
@@ -86,8 +90,10 @@ class PushService {
           )
           .timeout(const Duration(seconds: 15));
 
+      debugPrint('PUSH: response ${response.statusCode} ${response.body}');
       return response.statusCode == 200;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('PUSH: error $e');
       return false;
     }
   }

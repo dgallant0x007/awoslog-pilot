@@ -14,16 +14,18 @@ class AppSettings {
     this.mode = TrackingMode.perFlight,
   });
 
-  /// Generate the appropriate track ID based on mode.
+  /// Generate a UUID track ID. Always a UUID for the push API.
   String generateTrackId() {
-    if (mode == TrackingMode.tailNumber) {
-      return tail.toUpperCase().trim();
-    }
     return const Uuid().v4();
   }
 
-  /// Get the share URL for a given track ID.
+  /// Get the share URL based on mode.
+  /// Per-flight: uses the UUID (one-time link).
+  /// Tail number: uses the N-number (persistent link).
   String shareUrl(String trackId) {
+    if (mode == TrackingMode.tailNumber) {
+      return 'http://awoslog.com/track/${tail.toUpperCase().trim()}';
+    }
     return 'http://awoslog.com/track/$trackId';
   }
 

@@ -31,9 +31,18 @@ class GpsService {
   void start({required void Function(PilotPosition) onPosition}) {
     stop();
 
-    const settings = LocationSettings(
+    final settings = AndroidSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 0,
+      intervalDuration: const Duration(seconds: 10),
+      foregroundNotificationConfig: const ForegroundNotificationConfig(
+        notificationTitle: 'AWOSLOG Pilot Tracker',
+        notificationText: 'Tracking your flight',
+        enableWakeLock: true,
+        notificationChannelName: 'Flight Tracking',
+        notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),
+        setOngoing: true,
+      ),
     );
 
     _subscription = Geolocator.getPositionStream(
