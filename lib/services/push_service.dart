@@ -1,0 +1,94 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/position.dart';
+import 'buffer_service.dart';
+
+class PushService {
+  static const _pushUrl = 'http://awoslog.com/api/pilot/push';
+  static const _pushInterval = Duration(seconds: 10);
+
+  final BufferService _buffer;
+  final String Function() _getTrackId;
+  final String Function() _getTail;
+  final String Function() _getPilot;
+  final void Function(bool success, int count) _onPushResult;
+
+  Timer? _timer;
+  bool _pushing = false;
+  DateTime? _lastPush;
+
+  PushService({
+    required BufferService buffer,
+    required String Function() getTrackId,
+    required String Function() getTail,
+    required String Function() getPilot,
+    required void Function(bool success, int count) onPushResult,
+  })  : _buffer = buffer,
+        _getTrackId = getTrackId,
+        _getTail = getTail,
+        _getPilot = getPilot,
+        _onPushResult = onPushResult;
+
+  DateTime? get lastPush => _lastPush;
+
+  void start() {
+    stop();
+    // Push immediately, then on interval.
+    _pushNow();
+    _timer = Timer.periodic(_pushInterval, (_) => _pushNow());
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  Future<void> _pushNow() async {
+    if (_pushing) return;
+    _pushing = true;
+
+    try {
+      final positions = await _buffer.getUnpushed(limit: 500);
+      if (positions.isEmpty) {
+        _onPushResult(true, 0);
+        return;
+      }
+
+      final success = await _push(positions);
+      if (success) {
+        await _buffer.markPushed(positions);
+        _lastPush = DateTime.now();
+        await _buffer.cleanup();
+      }
+      _onPushResult(success, positions.length);
+    } catch (_) {
+      _onPushResult(false, 0);
+    } finally {
+      _pushing = false;
+    }
+  }
+
+  Future<bool> _push(List<PilotPosition> positions) async {
+    try {
+      final body = jsonEncode({
+        'track_id': _getTrackId(),
+        'tail': _getTail(),
+        'pilot': _getPilot(),
+        'positions': positions.map((p) => p.toJson()).toList(),
+      });
+
+      final response = await http
+          .post(
+            Uri.parse(_pushUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(const Duration(seconds: 15));
+
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+}
