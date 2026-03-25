@@ -6,7 +6,7 @@ import '../models/position.dart';
 import 'buffer_service.dart';
 
 class PushService {
-  static const _pushUrl = 'http://awoslog.com/api/pilot/push';
+  static const _pushUrl = 'https://awoslog.com/api/pilot/push';
   static const _pushInterval = Duration(seconds: 10);
 
   final BufferService _buffer;

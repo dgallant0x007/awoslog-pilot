@@ -24,9 +24,9 @@ class AppSettings {
   /// Tail number: uses the N-number (persistent link).
   String shareUrl(String trackId) {
     if (mode == TrackingMode.tailNumber) {
-      return 'http://awoslog.com/track/${tail.toUpperCase().trim()}';
+      return 'https://awoslog.com/track/${tail.toUpperCase().trim()}';
     }
-    return 'http://awoslog.com/track/$trackId';
+    return 'https://awoslog.com/track/$trackId';
   }
 
   Future<void> save() async {
