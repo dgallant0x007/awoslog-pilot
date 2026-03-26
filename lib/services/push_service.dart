@@ -13,6 +13,7 @@ class PushService {
   final String Function() _getTrackId;
   final String Function() _getTail;
   final String Function() _getPilot;
+  final String Function() _getMode;
   final void Function(bool success, int count) _onPushResult;
 
   Timer? _timer;
@@ -24,11 +25,13 @@ class PushService {
     required String Function() getTrackId,
     required String Function() getTail,
     required String Function() getPilot,
+    required String Function() getMode,
     required void Function(bool success, int count) onPushResult,
   })  : _buffer = buffer,
         _getTrackId = getTrackId,
         _getTail = getTail,
         _getPilot = getPilot,
+        _getMode = getMode,
         _onPushResult = onPushResult;
 
   DateTime? get lastPush => _lastPush;
@@ -76,6 +79,7 @@ class PushService {
         'track_id': _getTrackId(),
         'tail': _getTail(),
         'pilot': _getPilot(),
+        'mode': _getMode(),
         'positions': positions.map((p) => p.toJson()).toList(),
       });
 

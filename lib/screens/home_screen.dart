@@ -111,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
       getTrackId: () => _trackId,
       getTail: () => _settings.tail,
       getPilot: () => _settings.pilot,
+      getMode: () => _settings.mode == TrackingMode.perFlight ? 'per-flight' : 'tail-number',
       onPushResult: (success, count) {
         if (mounted) {
           setState(() {
