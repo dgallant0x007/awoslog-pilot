@@ -88,7 +88,7 @@ The buffer holds up to 10,000 positions (~28 hours at 10-second intervals). More
 
 ## Requirements
 
-- Android phone (iOS coming soon — requires Mac for build)
+- Android phone or iPhone/iPad
 - Cellular data (WiFi works for testing)
 - No account needed on awoslog.com
 

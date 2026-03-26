@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:geolocator/geolocator.dart';
 import '../models/position.dart';
 
@@ -31,19 +32,32 @@ class GpsService {
   void start({required void Function(PilotPosition) onPosition}) {
     stop();
 
-    final settings = AndroidSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 0,
-      intervalDuration: const Duration(seconds: 10),
-      foregroundNotificationConfig: const ForegroundNotificationConfig(
-        notificationTitle: 'AWOSLOG Pilot Tracker',
-        notificationText: 'Tracking your flight',
-        enableWakeLock: true,
-        notificationChannelName: 'Flight Tracking',
-        notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),
-        setOngoing: true,
-      ),
-    );
+    final LocationSettings settings;
+
+    if (Platform.isAndroid) {
+      settings = AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+        intervalDuration: const Duration(seconds: 10),
+        foregroundNotificationConfig: const ForegroundNotificationConfig(
+          notificationTitle: 'AWOSLOG Pilot Tracker',
+          notificationText: 'Tracking your flight',
+          enableWakeLock: true,
+          notificationChannelName: 'Flight Tracking',
+          notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),
+          setOngoing: true,
+        ),
+      );
+    } else {
+      settings = AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+        activityType: ActivityType.airborne,
+        pauseLocationUpdatesAutomatically: false,
+        showBackgroundLocationIndicator: true,
+        allowBackgroundLocationUpdates: true,
+      );
+    }
 
     _subscription = Geolocator.getPositionStream(
       locationSettings: settings,
