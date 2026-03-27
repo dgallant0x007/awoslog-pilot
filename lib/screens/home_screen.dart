@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:battery_plus/battery_plus.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../models/settings.dart';
 import '../models/position.dart';
 import '../services/gps_service.dart';
@@ -35,6 +37,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _buffered = 0;
   String _pushStatus = '';
   bool _pushOk = true;
+  DateTime? _trackingStart;
+  String _elapsed = '00:00';
+  Timer? _elapsedTimer;
+  bool _showQr = false;
 
   @override
   void initState() {
@@ -56,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _elapsedTimer?.cancel();
     _stopTracking();
     _tailController.dispose();
     _pilotController.dispose();
@@ -139,6 +146,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     _push!.start();
 
+    _trackingStart = DateTime.now();
+    _elapsedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_trackingStart != null && mounted) {
+        final d = DateTime.now().difference(_trackingStart!);
+        setState(() {
+          _elapsed = '${d.inHours.toString().padLeft(2, '0')}:${(d.inMinutes % 60).toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+        });
+      }
+    });
+
     setState(() => _tracking = true);
   }
 
@@ -147,12 +164,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _gps.stop();
     _push?.stop();
     _push = null;
+    _elapsedTimer?.cancel();
+    _elapsedTimer = null;
     final tail = _settings.tail;
     final phone = _settings.notifyPhone;
     setState(() {
       _tracking = false;
       _lastPos = null;
       _pushStatus = '';
+      _trackingStart = null;
+      _elapsed = '00:00';
+      _showQr = false;
     });
 
     // Offer to send landed SMS if a notify number is configured.
@@ -347,8 +369,24 @@ class _HomeScreenState extends State<HomeScreen> {
                             label: const Text('Share'),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          onPressed: () => setState(() => _showQr = !_showQr),
+                          child: const Icon(Icons.qr_code, size: 18),
+                        ),
                       ],
                     ),
+                    if (_showQr) ...[
+                      const SizedBox(height: 12),
+                      Center(
+                        child: QrImageView(
+                          data: _shareUrl,
+                          version: QrVersions.auto,
+                          size: 180,
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -395,6 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 8),
+          _statusRow('Flight Time', _elapsed),
           if (pos != null) ...[
             _statusRow('Position', '${pos.lat.toStringAsFixed(4)}, ${pos.lon.toStringAsFixed(4)}'),
             _statusRow('Altitude', '${pos.altitude} ft'),
