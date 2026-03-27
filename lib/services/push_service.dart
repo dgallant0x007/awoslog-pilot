@@ -10,18 +10,20 @@ class PushService {
   static const _pushUrl = 'https://awoslog.com/api/pilot/push';
   static const _closeUrl = 'https://awoslog.com/api/pilot/close';
   static const _pushInterval = Duration(seconds: 10);
-  static const _appVersion = '1.1.0';
+  static const _appVersion = '1.3.0';
 
   final BufferService _buffer;
   final String Function() _getTrackId;
   final String Function() _getTail;
   final String Function() _getPilot;
   final String Function() _getMode;
+  final Future<int> Function() _getBattery;
   final void Function(bool success, int count) _onPushResult;
 
   Timer? _timer;
   bool _pushing = false;
   DateTime? _lastPush;
+  int _lastBattery = 0;
 
   PushService({
     required BufferService buffer,
@@ -29,12 +31,14 @@ class PushService {
     required String Function() getTail,
     required String Function() getPilot,
     required String Function() getMode,
+    required Future<int> Function() getBattery,
     required void Function(bool success, int count) onPushResult,
   })  : _buffer = buffer,
         _getTrackId = getTrackId,
         _getTail = getTail,
         _getPilot = getPilot,
         _getMode = getMode,
+        _getBattery = getBattery,
         _onPushResult = onPushResult;
 
   DateTime? get lastPush => _lastPush;
@@ -62,6 +66,8 @@ class PushService {
         return;
       }
 
+      try { _lastBattery = await _getBattery(); } catch (_) {}
+
       final success = await _push(positions);
       if (success) {
         await _buffer.markPushed(positions);
@@ -85,6 +91,7 @@ class PushService {
         'mode': _getMode(),
         'platform': Platform.isAndroid ? 'android' : 'ios',
         'app_version': _appVersion,
+        'battery': _lastBattery,
         'positions': positions.map((p) => p.toJson()).toList(),
       });
 

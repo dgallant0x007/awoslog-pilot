@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:battery_plus/battery_plus.dart';
 import '../models/settings.dart';
 import '../models/position.dart';
 import '../services/gps_service.dart';
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late AppSettings _settings;
   late BufferService _buffer;
   late GpsService _gps;
+  final Battery _battery = Battery();
   PushService? _push;
 
   bool _loaded = false;
@@ -117,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
       getTail: () => _settings.tail,
       getPilot: () => _settings.pilot,
       getMode: () => _settings.mode == TrackingMode.perFlight ? 'per-flight' : 'tail-number',
+      getBattery: () => _battery.batteryLevel,
       onPushResult: (success, count) {
         if (mounted) {
           setState(() {
