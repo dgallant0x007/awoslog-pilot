@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/settings.dart';
 import '../models/position.dart';
 import '../services/gps_service.dart';
@@ -18,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _tailController = TextEditingController();
   final _pilotController = TextEditingController();
+  final _notifyPhoneController = TextEditingController();
 
   late AppSettings _settings;
   late BufferService _buffer;
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _settings = await AppSettings.load();
     _tailController.text = _settings.tail;
     _pilotController.text = _settings.pilot;
+    _notifyPhoneController.text = _settings.notifyPhone;
     setState(() => _loaded = true);
   }
 
@@ -54,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _stopTracking();
     _tailController.dispose();
     _pilotController.dispose();
+    _notifyPhoneController.dispose();
     _buffer.close();
     super.dispose();
   }
@@ -71,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Save settings.
     _settings.tail = tail;
     _settings.pilot = _pilotController.text.trim();
+    _settings.notifyPhone = _notifyPhoneController.text.trim();
     await _settings.save();
 
     // Request GPS permission.
@@ -139,11 +144,42 @@ class _HomeScreenState extends State<HomeScreen> {
     _gps.stop();
     _push?.stop();
     _push = null;
+    final tail = _settings.tail;
+    final phone = _settings.notifyPhone;
     setState(() {
       _tracking = false;
       _lastPos = null;
       _pushStatus = '';
     });
+
+    // Offer to send landed SMS if a notify number is configured.
+    if (phone.isNotEmpty && mounted) {
+      final send = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Send landed notification?'),
+          content: Text('Send "Landed OK" to $phone?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Skip'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Send'),
+            ),
+          ],
+        ),
+      );
+      if (send == true) {
+        final uri = Uri(
+          scheme: 'sms',
+          path: phone,
+          queryParameters: {'body': 'Landed OK \u2014 $tail'},
+        );
+        launchUrl(uri);
+      }
+    }
   }
 
   String get _shareUrl => _settings.shareUrl(_trackId);
@@ -228,6 +264,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         _settings.save();
                       }
                     },
+            ),
+            const SizedBox(height: 12),
+
+            // Notify on landing phone number
+            TextField(
+              controller: _notifyPhoneController,
+              enabled: !_tracking,
+              decoration: const InputDecoration(
+                labelText: 'Notify on Landing (optional)',
+                hintText: 'Phone number(s), comma separated',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.text,
             ),
             const SizedBox(height: 24),
 

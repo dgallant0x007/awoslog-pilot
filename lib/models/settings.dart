@@ -7,11 +7,13 @@ class AppSettings {
   String tail;
   String pilot;
   TrackingMode mode;
+  String notifyPhone;
 
   AppSettings({
     this.tail = '',
     this.pilot = '',
     this.mode = TrackingMode.perFlight,
+    this.notifyPhone = '',
   });
 
   /// Generate a UUID track ID. Always a UUID for the push API.
@@ -34,6 +36,7 @@ class AppSettings {
     await prefs.setString('tail', tail);
     await prefs.setString('pilot', pilot);
     await prefs.setString('mode', mode == TrackingMode.perFlight ? 'perFlight' : 'tailNumber');
+    await prefs.setString('notifyPhone', notifyPhone);
   }
 
   static Future<AppSettings> load() async {
@@ -43,6 +46,7 @@ class AppSettings {
       tail: prefs.getString('tail') ?? '',
       pilot: prefs.getString('pilot') ?? '',
       mode: modeStr == 'tailNumber' ? TrackingMode.tailNumber : TrackingMode.perFlight,
+      notifyPhone: prefs.getString('notifyPhone') ?? '',
     );
   }
 }
