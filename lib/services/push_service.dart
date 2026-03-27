@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/position.dart';
@@ -7,7 +8,9 @@ import 'buffer_service.dart';
 
 class PushService {
   static const _pushUrl = 'https://awoslog.com/api/pilot/push';
+  static const _closeUrl = 'https://awoslog.com/api/pilot/close';
   static const _pushInterval = Duration(seconds: 10);
+  static const _appVersion = '1.1.0';
 
   final BufferService _buffer;
   final String Function() _getTrackId;
@@ -80,6 +83,8 @@ class PushService {
         'tail': _getTail(),
         'pilot': _getPilot(),
         'mode': _getMode(),
+        'platform': Platform.isAndroid ? 'android' : 'ios',
+        'app_version': _appVersion,
         'positions': positions.map((p) => p.toJson()).toList(),
       });
 
@@ -99,6 +104,25 @@ class PushService {
     } catch (e) {
       debugPrint('PUSH: error $e');
       return false;
+    }
+  }
+
+  Future<void> close() async {
+    try {
+      final body = jsonEncode({
+        'track_id': _getTrackId(),
+        'tail': _getTail(),
+      });
+      debugPrint('CLOSE: sending close for track_id=${_getTrackId()}');
+      await http
+          .post(
+            Uri.parse(_closeUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: body,
+          )
+          .timeout(const Duration(seconds: 10));
+    } catch (e) {
+      debugPrint('CLOSE: error $e');
     }
   }
 }

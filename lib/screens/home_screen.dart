@@ -134,7 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _tracking = true);
   }
 
-  void _stopTracking() {
+  Future<void> _stopTracking() async {
+    await _push?.close();
     _gps.stop();
     _push?.stop();
     _push = null;
