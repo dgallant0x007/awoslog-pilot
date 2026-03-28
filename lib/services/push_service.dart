@@ -10,7 +10,7 @@ class PushService {
   static const _pushUrl = 'https://awoslog.com/api/pilot/push';
   static const _closeUrl = 'https://awoslog.com/api/pilot/close';
   static const _pushInterval = Duration(seconds: 10);
-  static const _appVersion = '1.3.0';
+  static const _appVersion = '1.3.1';
 
   final BufferService _buffer;
   final String Function() _getTrackId;

@@ -217,7 +217,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _shareUrlAction() {
-    Share.share('Track my flight: $_shareUrl');
+    final box = context.findRenderObject() as RenderBox?;
+    Share.share(
+      'Track my flight: $_shareUrl',
+      sharePositionOrigin: box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : Rect.zero,
+    );
   }
 
   @override
