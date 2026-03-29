@@ -9,8 +9,7 @@ import 'buffer_service.dart';
 class PushService {
   static const _pushUrl = 'https://awoslog.com/api/pilot/push';
   static const _closeUrl = 'https://awoslog.com/api/pilot/close';
-  static const _pushInterval = Duration(seconds: 10);
-  static const _appVersion = '1.4.1';
+  static const _appVersion = '1.4.5';
 
   final BufferService _buffer;
   final String Function() _getTrackId;
@@ -20,6 +19,7 @@ class PushService {
   final String Function() _getGroupId;
   final Future<int> Function() _getBattery;
   final void Function(bool success, int count) _onPushResult;
+  final Duration _pushInterval;
 
   Timer? _timer;
   bool _pushing = false;
@@ -35,6 +35,7 @@ class PushService {
     required String Function() getGroupId,
     required Future<int> Function() getBattery,
     required void Function(bool success, int count) onPushResult,
+    Duration pushInterval = const Duration(seconds: 10),
   })  : _buffer = buffer,
         _getTrackId = getTrackId,
         _getTail = getTail,
@@ -42,7 +43,8 @@ class PushService {
         _getMode = getMode,
         _getGroupId = getGroupId,
         _getBattery = getBattery,
-        _onPushResult = onPushResult;
+        _onPushResult = onPushResult,
+        _pushInterval = pushInterval;
 
   DateTime? get lastPush => _lastPush;
 

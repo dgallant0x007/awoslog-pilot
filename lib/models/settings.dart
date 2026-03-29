@@ -9,6 +9,7 @@ class AppSettings {
   TrackingMode mode;
   String notifyPhone;
   String groupId;
+  bool batterySaver;
 
   AppSettings({
     this.tail = '',
@@ -16,6 +17,7 @@ class AppSettings {
     this.mode = TrackingMode.perFlight,
     this.notifyPhone = '',
     this.groupId = '',
+    this.batterySaver = false,
   });
 
   /// Generate a UUID track ID. Always a UUID for the push API.
@@ -44,6 +46,7 @@ class AppSettings {
     await prefs.setString('mode', mode == TrackingMode.perFlight ? 'perFlight' : mode == TrackingMode.tailNumber ? 'tailNumber' : 'groupFlight');
     await prefs.setString('notifyPhone', notifyPhone);
     await prefs.setString('groupId', groupId);
+    await prefs.setBool('batterySaver', batterySaver);
   }
 
   static Future<AppSettings> load() async {
@@ -60,6 +63,7 @@ class AppSettings {
       mode: mode,
       notifyPhone: prefs.getString('notifyPhone') ?? '',
       groupId: prefs.getString('groupId') ?? '',
+      batterySaver: prefs.getBool('batterySaver') ?? false,
     );
   }
 }

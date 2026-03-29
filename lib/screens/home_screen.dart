@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late AppSettings _settings;
   late BufferService _buffer;
-  late GpsService _gps;
+  GpsService? _gps;
   final Battery _battery = Battery();
   PushService? _push;
 
@@ -47,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _buffer = BufferService();
-    _gps = GpsService();
     _init();
   }
 
@@ -97,8 +96,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _settings.notifyPhone = _notifyPhoneController.text.trim();
     await _settings.save();
 
+    // Create GPS service with appropriate recording interval.
+    _gps = GpsService(
+      minInterval: Duration(seconds: _settings.batterySaver ? 30 : 5),
+    );
+
     // Request GPS permission.
-    final ok = await _gps.requestPermission();
+    final ok = await _gps!.requestPermission();
     if (!ok) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -118,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await NotificationService.requestPermission();
 
     // Start GPS.
-    _gps.start(onPosition: (pos) async {
+    _gps!.start(onPosition: (pos) async {
       await _buffer.insert(pos);
       final count = await _buffer.unpushedCount();
       if (mounted) {
@@ -138,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
       getMode: () => _settings.mode == TrackingMode.tailNumber ? 'tail-number' : 'per-flight',
       getGroupId: () => _settings.groupId,
       getBattery: () => _battery.batteryLevel,
+      pushInterval: Duration(seconds: _settings.batterySaver ? 60 : 10),
       onPushResult: (success, count) {
         if (mounted) {
           setState(() {
@@ -172,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _stopTracking() async {
     await _push?.close();
-    _gps.stop();
+    _gps?.stop();
     _push?.stop();
     _push = null;
     _elapsedTimer?.cancel();
@@ -343,7 +348,24 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               keyboardType: TextInputType.text,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+
+            // Battery saver toggle
+            SwitchListTile(
+              title: const Text('Battery Saver'),
+              subtitle: Text(_settings.batterySaver
+                  ? 'Updates every 60 seconds'
+                  : 'Updates every 10 seconds'),
+              value: _settings.batterySaver,
+              onChanged: _tracking
+                  ? null
+                  : (v) {
+                      setState(() => _settings.batterySaver = v);
+                      _settings.save();
+                    },
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 12),
 
             // Start / Stop button
             SizedBox(

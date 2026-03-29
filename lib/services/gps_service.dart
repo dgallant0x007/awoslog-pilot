@@ -4,8 +4,14 @@ import 'package:geolocator/geolocator.dart';
 import '../models/position.dart';
 
 class GpsService {
+  Duration _minInterval;
+
   StreamSubscription<Position>? _subscription;
   PilotPosition? _lastPosition;
+  DateTime? _lastRecorded;
+
+  GpsService({Duration minInterval = const Duration(seconds: 5)})
+      : _minInterval = minInterval;
 
   PilotPosition? get lastPosition => _lastPosition;
 
@@ -37,7 +43,7 @@ class GpsService {
     if (Platform.isAndroid) {
       settings = AndroidSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 0,
+        distanceFilter: 10,
         intervalDuration: const Duration(seconds: 10),
         foregroundNotificationConfig: const ForegroundNotificationConfig(
           notificationTitle: 'AWOSLOG Pilot Tracker',
@@ -51,7 +57,7 @@ class GpsService {
     } else {
       settings = AppleSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 0,
+        distanceFilter: 10,
         activityType: ActivityType.airborne,
         pauseLocationUpdatesAutomatically: false,
         showBackgroundLocationIndicator: true,
@@ -75,6 +81,13 @@ class GpsService {
       );
 
       _lastPosition = pilotPos;
+
+      // Throttle: only record at most once per _minInterval.
+      final now = DateTime.now();
+      if (_lastRecorded != null && now.difference(_lastRecorded!) < _minInterval) {
+        return;
+      }
+      _lastRecorded = now;
       onPosition(pilotPos);
     });
   }
@@ -83,5 +96,6 @@ class GpsService {
     _subscription?.cancel();
     _subscription = null;
     _lastPosition = null;
+    _lastRecorded = null;
   }
 }
