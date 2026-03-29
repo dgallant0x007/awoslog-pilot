@@ -8,12 +8,14 @@ class AppSettings {
   String pilot;
   TrackingMode mode;
   String notifyPhone;
+  String groupId;
 
   AppSettings({
     this.tail = '',
     this.pilot = '',
     this.mode = TrackingMode.perFlight,
     this.notifyPhone = '',
+    this.groupId = '',
   });
 
   /// Generate a UUID track ID. Always a UUID for the push API.
@@ -31,12 +33,23 @@ class AppSettings {
     return 'https://awoslog.com/track/$trackId';
   }
 
+  /// Get the group share URL, or empty string if no group ID set.
+  String get groupUrl {
+    final gid = groupId.trim().toUpperCase();
+    if (gid.isEmpty) return '';
+    return 'https://awoslog.com/track/g/$gid';
+  }
+
+  /// Whether this session has a group ID set.
+  bool get hasGroup => groupId.trim().isNotEmpty;
+
   Future<void> save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tail', tail);
     await prefs.setString('pilot', pilot);
     await prefs.setString('mode', mode == TrackingMode.perFlight ? 'perFlight' : 'tailNumber');
     await prefs.setString('notifyPhone', notifyPhone);
+    await prefs.setString('groupId', groupId);
   }
 
   static Future<AppSettings> load() async {
@@ -47,6 +60,7 @@ class AppSettings {
       pilot: prefs.getString('pilot') ?? '',
       mode: modeStr == 'tailNumber' ? TrackingMode.tailNumber : TrackingMode.perFlight,
       notifyPhone: prefs.getString('notifyPhone') ?? '',
+      groupId: prefs.getString('groupId') ?? '',
     );
   }
 }

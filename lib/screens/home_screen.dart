@@ -22,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _tailController = TextEditingController();
   final _pilotController = TextEditingController();
+  final _groupIdController = TextEditingController();
   final _notifyPhoneController = TextEditingController();
 
   late AppSettings _settings;
@@ -57,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _tailController.text = _settings.tail;
     _pilotController.text = _settings.pilot;
     _notifyPhoneController.text = _settings.notifyPhone;
+    _groupIdController.text = _settings.groupId;
     setState(() => _loaded = true);
   }
 
@@ -66,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _stopTracking();
     _tailController.dispose();
     _pilotController.dispose();
+    _groupIdController.dispose();
     _notifyPhoneController.dispose();
     _buffer.close();
     super.dispose();
@@ -84,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Save settings.
     _settings.tail = tail;
     _settings.pilot = _pilotController.text.trim();
+    _settings.groupId = _groupIdController.text.trim().toUpperCase();
     _settings.notifyPhone = _notifyPhoneController.text.trim();
     await _settings.save();
 
@@ -126,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       getTail: () => _settings.tail,
       getPilot: () => _settings.pilot,
       getMode: () => _settings.mode == TrackingMode.perFlight ? 'per-flight' : 'tail-number',
+      getGroupId: () => _settings.groupId,
       getBattery: () => _battery.batteryLevel,
       onPushResult: (success, count) {
         if (mounted) {
@@ -208,18 +213,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String get _shareUrl => _settings.shareUrl(_trackId);
+  String get _groupUrl => _settings.groupUrl;
+  String get _qrUrl => _settings.hasGroup ? _groupUrl : _shareUrl;
 
-  void _copyUrl() {
-    Clipboard.setData(ClipboardData(text: _shareUrl));
+  void _copyUrl(String url) {
+    Clipboard.setData(ClipboardData(text: url));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Link copied')),
     );
   }
 
-  void _shareUrlAction() {
+  void _shareUrlAction(String url, String label) {
     final box = context.findRenderObject() as RenderBox?;
     Share.share(
-      'Track my flight: $_shareUrl',
+      '$label: $url',
       sharePositionOrigin: box != null
           ? box.localToGlobal(Offset.zero) & box.size
           : Rect.zero,
@@ -298,6 +305,24 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
+            // Group ID (optional)
+            TextField(
+              controller: _groupIdController,
+              enabled: !_tracking,
+              decoration: const InputDecoration(
+                labelText: 'Group ID (optional)',
+                hintText: 'e.g. FLY123',
+                helperText: 'Share with friends to fly together on one map',
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.characters,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                LengthLimitingTextInputFormatter(6),
+              ],
+            ),
+            const SizedBox(height: 12),
+
             // Notify on landing phone number
             TextField(
               controller: _notifyPhoneController,
@@ -332,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Share URL (only when tracking)
+            // Share URLs (only when tracking)
             if (_tracking) ...[
               const SizedBox(height: 20),
               Container(
@@ -345,7 +370,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Share this link:',
+                    // Individual link
+                    const Text('Your flight:',
                         style: TextStyle(
                             fontWeight: FontWeight.w600, fontSize: 13)),
                     const SizedBox(height: 4),
@@ -362,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _copyUrl,
+                            onPressed: () => _copyUrl(_shareUrl),
                             icon: const Icon(Icons.copy, size: 18),
                             label: const Text('Copy'),
                           ),
@@ -370,23 +396,65 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _shareUrlAction,
+                            onPressed: () => _shareUrlAction(_shareUrl, 'Track my flight'),
                             icon: const Icon(Icons.share, size: 18),
                             label: const Text('Share'),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        OutlinedButton(
-                          onPressed: () => setState(() => _showQr = !_showQr),
-                          child: const Icon(Icons.qr_code, size: 18),
-                        ),
                       ],
+                    ),
+
+                    // Group link (only when group ID is set)
+                    if (_settings.hasGroup) ...[
+                      const SizedBox(height: 16),
+                      const Text('Group flight:',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      Text(
+                        _groupUrl,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.blue.shade700,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _copyUrl(_groupUrl),
+                              icon: const Icon(Icons.copy, size: 18),
+                              label: const Text('Copy'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _shareUrlAction(_groupUrl, 'Track our group flight'),
+                              icon: const Icon(Icons.share, size: 18),
+                              label: const Text('Share'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    // QR code button + display
+                    const SizedBox(height: 8),
+                    Center(
+                      child: OutlinedButton.icon(
+                        onPressed: () => setState(() => _showQr = !_showQr),
+                        icon: const Icon(Icons.qr_code, size: 18),
+                        label: Text(_settings.hasGroup ? 'QR (Group)' : 'QR Code'),
+                      ),
                     ),
                     if (_showQr) ...[
                       const SizedBox(height: 12),
                       Center(
                         child: QrImageView(
-                          data: _shareUrl,
+                          data: _qrUrl,
                           version: QrVersions.auto,
                           size: 180,
                           backgroundColor: Colors.white,

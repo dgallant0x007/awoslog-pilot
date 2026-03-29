@@ -10,13 +10,14 @@ class PushService {
   static const _pushUrl = 'https://awoslog.com/api/pilot/push';
   static const _closeUrl = 'https://awoslog.com/api/pilot/close';
   static const _pushInterval = Duration(seconds: 10);
-  static const _appVersion = '1.3.1';
+  static const _appVersion = '1.4.0';
 
   final BufferService _buffer;
   final String Function() _getTrackId;
   final String Function() _getTail;
   final String Function() _getPilot;
   final String Function() _getMode;
+  final String Function() _getGroupId;
   final Future<int> Function() _getBattery;
   final void Function(bool success, int count) _onPushResult;
 
@@ -31,6 +32,7 @@ class PushService {
     required String Function() getTail,
     required String Function() getPilot,
     required String Function() getMode,
+    required String Function() getGroupId,
     required Future<int> Function() getBattery,
     required void Function(bool success, int count) onPushResult,
   })  : _buffer = buffer,
@@ -38,6 +40,7 @@ class PushService {
         _getTail = getTail,
         _getPilot = getPilot,
         _getMode = getMode,
+        _getGroupId = getGroupId,
         _getBattery = getBattery,
         _onPushResult = onPushResult;
 
@@ -84,11 +87,13 @@ class PushService {
 
   Future<bool> _push(List<PilotPosition> positions) async {
     try {
+      final groupId = _getGroupId();
       final body = jsonEncode({
         'track_id': _getTrackId(),
         'tail': _getTail(),
         'pilot': _getPilot(),
         'mode': _getMode(),
+        if (groupId.isNotEmpty) 'group_id': groupId,
         'platform': Platform.isAndroid ? 'android' : 'ios',
         'app_version': _appVersion,
         'battery': _lastBattery,
