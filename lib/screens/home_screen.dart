@@ -83,6 +83,12 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
+    if (_settings.mode == TrackingMode.groupFlight && _groupIdController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Group ID required for Group Flight sharing mode')),
+      );
+      return;
+    }
 
     // Save settings.
     _settings.tail = tail;
@@ -129,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
       getTrackId: () => _trackId,
       getTail: () => _settings.tail,
       getPilot: () => _settings.pilot,
-      getMode: () => _settings.mode == TrackingMode.perFlight ? 'per-flight' : 'tail-number',
+      getMode: () => _settings.mode == TrackingMode.tailNumber ? 'tail-number' : 'per-flight',
       getGroupId: () => _settings.groupId,
       getBattery: () => _battery.batteryLevel,
       onPushResult: (success, count) {
@@ -213,8 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String get _shareUrl => _settings.shareUrl(_trackId);
-  String get _groupUrl => _settings.groupUrl;
-  String get _qrUrl => _settings.hasGroup ? _groupUrl : _shareUrl;
+  bool get _isGroupMode => _settings.mode == TrackingMode.groupFlight;
 
   void _copyUrl(String url) {
     Clipboard.setData(ClipboardData(text: url));
@@ -252,6 +257,18 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Pilot name
+            TextField(
+              controller: _pilotController,
+              enabled: !_tracking,
+              decoration: const InputDecoration(
+                labelText: 'Pilot Name',
+                hintText: 'Dave',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+
             // Tail number
             TextField(
               controller: _tailController,
@@ -265,19 +282,25 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Pilot name
+            // Group ID
             TextField(
-              controller: _pilotController,
+              controller: _groupIdController,
               enabled: !_tracking,
               decoration: const InputDecoration(
-                labelText: 'Pilot Name',
-                hintText: 'Dave',
+                labelText: 'Group ID (optional)',
+                hintText: 'e.g. FLY123',
+                helperText: 'Share with friends to fly together on one map',
                 border: OutlineInputBorder(),
               ),
+              textCapitalization: TextCapitalization.characters,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                LengthLimitingTextInputFormatter(6),
+              ],
             ),
             const SizedBox(height: 12),
 
-            // Tracking mode
+            // Sharing mode
             DropdownButtonFormField<TrackingMode>(
               value: _settings.mode,
               decoration: const InputDecoration(
@@ -293,6 +316,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   value: TrackingMode.tailNumber,
                   child: Text('Tail number (same link always)'),
                 ),
+                DropdownMenuItem(
+                  value: TrackingMode.groupFlight,
+                  child: Text('Group flight (share group map)'),
+                ),
               ],
               onChanged: _tracking
                   ? null
@@ -302,24 +329,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _settings.save();
                       }
                     },
-            ),
-            const SizedBox(height: 12),
-
-            // Group ID (optional)
-            TextField(
-              controller: _groupIdController,
-              enabled: !_tracking,
-              decoration: const InputDecoration(
-                labelText: 'Group ID (optional)',
-                hintText: 'e.g. FLY123',
-                helperText: 'Share with friends to fly together on one map',
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.characters,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
-                LengthLimitingTextInputFormatter(6),
-              ],
             ),
             const SizedBox(height: 12),
 
@@ -357,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Share URLs (only when tracking)
+            // Share URL (only when tracking)
             if (_tracking) ...[
               const SizedBox(height: 20),
               Container(
@@ -370,10 +379,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Individual link
-                    const Text('Your flight:',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 13)),
+                    Text(
+                      _isGroupMode ? 'Your group flight:' : 'Your flight:',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       _shareUrl,
@@ -396,65 +406,26 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => _shareUrlAction(_shareUrl, 'Track my flight'),
+                            onPressed: () => _shareUrlAction(
+                              _shareUrl,
+                              _isGroupMode ? 'Track our group flight' : 'Track my flight',
+                            ),
                             icon: const Icon(Icons.share, size: 18),
                             label: const Text('Share'),
                           ),
                         ),
-                      ],
-                    ),
-
-                    // Group link (only when group ID is set)
-                    if (_settings.hasGroup) ...[
-                      const SizedBox(height: 16),
-                      const Text('Group flight:',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      Text(
-                        _groupUrl,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.blue.shade700,
-                          fontFamily: 'monospace',
+                        const SizedBox(width: 8),
+                        OutlinedButton(
+                          onPressed: () => setState(() => _showQr = !_showQr),
+                          child: const Icon(Icons.qr_code, size: 18),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _copyUrl(_groupUrl),
-                              icon: const Icon(Icons.copy, size: 18),
-                              label: const Text('Copy'),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _shareUrlAction(_groupUrl, 'Track our group flight'),
-                              icon: const Icon(Icons.share, size: 18),
-                              label: const Text('Share'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-
-                    // QR code button + display
-                    const SizedBox(height: 8),
-                    Center(
-                      child: OutlinedButton.icon(
-                        onPressed: () => setState(() => _showQr = !_showQr),
-                        icon: const Icon(Icons.qr_code, size: 18),
-                        label: Text(_settings.hasGroup ? 'QR (Group)' : 'QR Code'),
-                      ),
+                      ],
                     ),
                     if (_showQr) ...[
                       const SizedBox(height: 12),
                       Center(
                         child: QrImageView(
-                          data: _qrUrl,
+                          data: _shareUrl,
                           version: QrVersions.auto,
                           size: 180,
                           backgroundColor: Colors.white,
