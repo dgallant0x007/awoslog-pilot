@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'package:flutter/services.dart';
+import 'screens/cockpit_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const AwoslogPilotApp());
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  runApp(const AwoslogApp());
 }
 
-class AwoslogPilotApp extends StatelessWidget {
-  const AwoslogPilotApp({super.key});
+class AwoslogApp extends StatelessWidget {
+  const AwoslogApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AWOSLOG Pilot Tracker',
+      title: 'AWOSLOG',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF1565C0),
-        useMaterial3: true,
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
       ),
-      home: const HomeScreen(),
+      home: const CockpitScreen(),
     );
   }
 }

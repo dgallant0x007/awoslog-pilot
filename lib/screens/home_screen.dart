@@ -307,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Sharing mode
             DropdownButtonFormField<TrackingMode>(
-              value: _settings.mode,
+              initialValue: _settings.mode,
               decoration: const InputDecoration(
                 labelText: 'Sharing Mode',
                 border: OutlineInputBorder(),
