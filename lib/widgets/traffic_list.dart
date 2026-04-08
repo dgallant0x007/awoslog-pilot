@@ -22,12 +22,12 @@ class TrafficList extends StatelessWidget {
               children: [
                 Text('TRAFFIC',
                     style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF5588AA),
                         letterSpacing: 1.5)),
                 Text('50nm \u00B710K',
-                    style: TextStyle(fontSize: 9, color: Color(0xFF444444))),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
               ],
             ),
           ),
@@ -37,9 +37,9 @@ class TrafficList extends StatelessWidget {
               child: Center(
                 child: Text('no traffic',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF333333))),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF666666))),
               ),
             )
           else

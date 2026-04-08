@@ -91,6 +91,18 @@ void main() {
       expect(station.windDisplay, '190@14G22');
     });
 
+    test('zero-pads direction to 3 digits', () {
+      final station = Station(
+        id: 'TEST', city: '', state: '', lat: 0, lon: 0,
+        elevation: 5000, community: true, distanceNm: 1.0,
+        ceiling: 25000, visibility: 10.0,
+        windSpeed: 8, windGust: 0, windAngle: 70,
+        tempC: 20, barometer: 29.92, wx: '',
+        densityAltitude: 5000,
+      );
+      expect(station.windDisplay, '070@8');
+    });
+
     test('shows calm when speed is 0', () {
       final station = Station(
         id: 'XMIN', city: '', state: '', lat: 0, lon: 0,

@@ -22,7 +22,7 @@ class CockpitScreen extends StatefulWidget {
   State<CockpitScreen> createState() => _CockpitScreenState();
 }
 
-class _CockpitScreenState extends State<CockpitScreen> {
+class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserver {
   final _api = ApiService(baseUrl: Config.apiBaseUrl);
   final _gps = GpsService(minInterval: const Duration(seconds: 1));
   final _baro = BarometerService();
@@ -43,7 +43,16 @@ class _CockpitScreenState extends State<CockpitScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _init();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchStations();
+      _fetchTraffic();
+    }
   }
 
   Future<void> _init() async {
@@ -111,6 +120,10 @@ class _CockpitScreenState extends State<CockpitScreen> {
     final metars = await _api.fetchLatest();
     _metarMap = {for (final m in metars) m.station: m};
     _recomputeStations();
+    // Recompute DA in case station data arrived after GPS
+    if (_flightData.lat != 0 || _flightData.lon != 0) {
+      _flightData = _computeDA(_flightData);
+    }
     if (mounted) setState(() {});
   }
 
@@ -198,6 +211,7 @@ class _CockpitScreenState extends State<CockpitScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable();
     _baroSub?.cancel();
     _trafficTimer?.cancel();

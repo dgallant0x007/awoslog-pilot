@@ -20,12 +20,12 @@ class StationList extends StatelessWidget {
             children: [
               Text('STATIONS',
                   style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF5588AA),
                       letterSpacing: 1.5)),
               Text('nearest 25',
-                  style: TextStyle(fontSize: 9, color: Color(0xFF444444))),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
             ],
           ),
         ),
@@ -79,7 +79,7 @@ class StationList extends StatelessWidget {
                           color: Colors.white,
                           fontFamily: 'monospace')),
                   const SizedBox(width: 6),
-                  Text('${distStr}nm',
+                  Text('${distStr}NM',
                       style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,

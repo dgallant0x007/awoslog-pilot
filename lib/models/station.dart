@@ -134,7 +134,8 @@ class Station {
 
   String get windDisplay {
     if (windSpeed == 0) return 'calm';
-    final base = '$windAngle@$windSpeed';
+    final dir = (windAngle == 0 ? 360 : windAngle).toString().padLeft(3, '0');
+    final base = '$dir@$windSpeed';
     if (windGust > 0) return '${base}G$windGust';
     return base;
   }
