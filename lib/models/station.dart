@@ -88,7 +88,7 @@ class Station {
   final int tempC;
   final double barometer;
   final String wx;
-  final int densityAltitude;
+  final int? densityAltitude;
 
   const Station({
     required this.id,
@@ -128,7 +128,7 @@ class Station {
       tempC: metar.tempC,
       barometer: metar.barometer,
       wx: metar.wx,
-      densityAltitude: 0,
+      densityAltitude: null,
     );
   }
 
@@ -140,15 +140,15 @@ class Station {
     return base;
   }
 
-  Station copyWith({double? distanceNm, int? densityAltitude}) {
+  Station withDistanceAndDA({required double distanceNm, int? densityAltitude}) {
     return Station(
       id: id, city: city, state: state, lat: lat, lon: lon,
       elevation: elevation, community: community,
-      distanceNm: distanceNm ?? this.distanceNm,
+      distanceNm: distanceNm,
       ceiling: ceiling, visibility: visibility,
       windSpeed: windSpeed, windGust: windGust, windAngle: windAngle,
       tempC: tempC, barometer: barometer, wx: wx,
-      densityAltitude: densityAltitude ?? this.densityAltitude,
+      densityAltitude: densityAltitude,
     );
   }
 }

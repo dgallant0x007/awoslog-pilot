@@ -6,11 +6,13 @@ class TrafficTarget {
   final int clock;
   final double distanceNm;
   final int relativeAltFt;
+  final String ident;
 
   const TrafficTarget({
     required this.clock,
     required this.distanceNm,
     required this.relativeAltFt,
+    required this.ident,
   });
 
   String get _altLabel {
@@ -22,7 +24,9 @@ class TrafficTarget {
   }
 
   String get display {
-    return '$clock:00 @ ${distanceNm.toStringAsFixed(0)}NM $_altLabel';
+    final clockStr = clock.toString().padLeft(2);
+    final pos = '$clockStr:00@${distanceNm.toStringAsFixed(0)}NM $_altLabel';
+    return ident.isNotEmpty ? '$ident $pos' : pos;
   }
 }
 
@@ -48,10 +52,14 @@ List<TrafficTarget> processTraffic({
     final bear = bearing(myLat, myLon, ac.lat, ac.lon);
     final clock = clockPosition(myTrackDeg, bear);
 
+    // Prefer registration (N-number), fall back to callsign
+    final ident = ac.reg.isNotEmpty ? ac.reg : ac.callsign;
+
     targets.add(TrafficTarget(
       clock: clock,
       distanceNm: dist,
       relativeAltFt: relAlt,
+      ident: ident,
     ));
   }
 

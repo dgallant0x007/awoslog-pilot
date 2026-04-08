@@ -54,15 +54,20 @@ class TrafficList extends StatelessWidget {
                   return Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: Text(
-                      target.display,
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: 'monospace',
-                        color: isClosest
-                            ? const Color(0xFFFF9800)
-                            : const Color(0xFF4FC3F7),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        target.display,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.w900,
+                          fontFamily: 'monospace',
+                          color: isClosest
+                              ? const Color(0xFFFF9800)
+                              : const Color(0xFF4FC3F7),
+                        ),
                       ),
                     ),
                   );

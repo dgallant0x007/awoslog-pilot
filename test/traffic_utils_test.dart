@@ -25,28 +25,28 @@ Aircraft _makeAircraft({
 
 void main() {
   group('TrafficTarget display', () {
-    test('formats with negative altitude delta', () {
+    test('formats with N-number and negative altitude delta', () {
       final target =
-          TrafficTarget(clock: 2, distanceNm: 3.0, relativeAltFt: -200);
-      expect(target.display, '2:00 @ 3NM -200');
+          TrafficTarget(clock: 2, distanceNm: 3.0, relativeAltFt: -200, ident: 'N335RK');
+      expect(target.display, 'N335RK  2:00@3NM -200');
     });
 
     test('formats with positive altitude delta', () {
       final target =
-          TrafficTarget(clock: 12, distanceNm: 8.0, relativeAltFt: 2100);
-      expect(target.display, '12:00 @ 8NM +2100');
+          TrafficTarget(clock: 12, distanceNm: 8.0, relativeAltFt: 2100, ident: 'N123AB');
+      expect(target.display, 'N123AB 12:00@8NM +2100');
     });
 
-    test('formats level traffic', () {
+    test('formats level traffic without ident', () {
       final target =
-          TrafficTarget(clock: 9, distanceNm: 5.0, relativeAltFt: 50);
-      expect(target.display, '9:00 @ 5NM level');
+          TrafficTarget(clock: 9, distanceNm: 5.0, relativeAltFt: 50, ident: '');
+      expect(target.display, ' 9:00@5NM level');
     });
 
     test('rounds to nearest 100', () {
       final target =
-          TrafficTarget(clock: 3, distanceNm: 10.0, relativeAltFt: 4250);
-      expect(target.display, '3:00 @ 10NM +4300');
+          TrafficTarget(clock: 3, distanceNm: 10.0, relativeAltFt: 4250, ident: 'UAL456');
+      expect(target.display, 'UAL456  3:00@10NM +4300');
     });
   });
 

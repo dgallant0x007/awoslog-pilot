@@ -194,12 +194,13 @@ class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserv
 
       final dist = haversineNm(
           _flightData.lat, _flightData.lon, port.lat, port.lon);
-      final da = (metar.barometer > 0 && metar.tempC != 0)
+      final hasDa = metar.barometer > 0 && metar.tempC != 0;
+      final da = hasDa
           ? stationDensityAltitude(
               port.elevation, metar.barometer, metar.tempC.toDouble())
-          : port.elevation;
+          : null;
 
-      merged.add(Station.fromPortAndMetar(port, metar).copyWith(
+      merged.add(Station.fromPortAndMetar(port, metar).withDistanceAndDA(
         distanceNm: dist,
         densityAltitude: da,
       ));

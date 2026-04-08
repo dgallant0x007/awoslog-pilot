@@ -96,7 +96,9 @@ class StationList extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                         fontFamily: 'monospace')),
-                Text('DA ${station.densityAltitude}',
+                Text(station.densityAltitude != null
+                    ? 'DA ${station.densityAltitude}'
+                    : 'ELEV ${station.elevation}',
                     style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
