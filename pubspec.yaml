@@ -30,18 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
   geolocator: ^13.0.2
   http: ^1.2.0
-  shared_preferences: ^2.2.0
-  sqflite: ^2.3.0
-  path: ^1.9.0
-  uuid: ^4.3.0
-  share_plus: ^10.0.0
-  flutter_local_notifications: ^18.0.0
-  url_launcher: ^6.2.0
-  battery_plus: ^6.0.0
-  qr_flutter: ^4.1.0
   sensors_plus: ^6.1.1
   wakelock_plus: ^1.2.8
 
@@ -57,13 +47,6 @@ flutter_launcher_icons:
   adaptive_icon_background: "#1565C0"
   adaptive_icon_foreground: "assets/icon.png"
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
-  flutter_lints: ^6.0.0
-  lints: ^5.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
