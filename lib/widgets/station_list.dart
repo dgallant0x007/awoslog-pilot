@@ -4,8 +4,9 @@ import '../utils/math_utils.dart';
 
 class StationList extends StatelessWidget {
   final List<Station> stations;
+  final bool loaded;
 
-  const StationList({super.key, required this.stations});
+  const StationList({super.key, required this.stations, this.loaded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,15 @@ class StationList extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ListView.builder(
+          child: stations.isEmpty
+            ? Center(
+                child: Text(loaded ? 'no stations' : 'loading...',
+                    style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF666666))),
+              )
+            : ListView.builder(
             padding: EdgeInsets.zero,
             itemCount: stations.length,
             itemBuilder: (context, index) => _stationRow(stations[index]),

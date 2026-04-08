@@ -3,8 +3,9 @@ import '../utils/traffic_utils.dart';
 
 class TrafficList extends StatelessWidget {
   final List<TrafficTarget> targets;
+  final bool loaded;
 
-  const TrafficList({super.key, required this.targets});
+  const TrafficList({super.key, required this.targets, this.loaded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +33,11 @@ class TrafficList extends StatelessWidget {
             ),
           ),
           if (targets.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Center(
-                child: Text('no traffic',
-                    style: TextStyle(
+                child: Text(loaded ? 'no traffic' : 'loading...',
+                    style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF666666))),

@@ -46,8 +46,8 @@ class GpsService {
         distanceFilter: 10,
         intervalDuration: const Duration(seconds: 10),
         foregroundNotificationConfig: const ForegroundNotificationConfig(
-          notificationTitle: 'AWOSLOG Pilot Tracker',
-          notificationText: 'Tracking your flight',
+          notificationTitle: 'AWOSLOG Pilot',
+          notificationText: 'Weather and traffic active',
           enableWakeLock: true,
           notificationChannelName: 'Flight Tracking',
           notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),

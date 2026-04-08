@@ -35,6 +35,8 @@ class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserv
 
   List<TrafficTarget> _targets = [];
   List<Station> _stations = [];
+  bool _trafficLoaded = false;
+  bool _stationsLoaded = false;
 
   StreamSubscription<double>? _baroSub;
   Timer? _trafficTimer;
@@ -112,6 +114,7 @@ class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserv
       _flightData.lon,
       Config.trafficRadiusNm,
     );
+    _trafficLoaded = true;
     _recomputeTraffic();
     if (mounted) setState(() {});
   }
@@ -119,6 +122,7 @@ class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserv
   Future<void> _fetchStations() async {
     final metars = await _api.fetchLatest();
     _metarMap = {for (final m in metars) m.station: m};
+    _stationsLoaded = true;
     _recomputeStations();
     // Recompute DA in case station data arrived after GPS
     if (_flightData.lat != 0 || _flightData.lon != 0) {
@@ -222,8 +226,26 @@ class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserv
     super.dispose();
   }
 
+  bool get _hasGps => _flightData.lat != 0 || _flightData.lon != 0;
+
   @override
   Widget build(BuildContext context) {
+    if (!_hasGps) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: const Center(
+          child: Text(
+            'Acquiring GPS...',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF5588AA),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -233,11 +255,11 @@ class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserv
             Container(height: 2, color: const Color(0xFF1A3A5C)),
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 260),
-              child: TrafficList(targets: _targets),
+              child: TrafficList(targets: _targets, loaded: _trafficLoaded),
             ),
             Container(height: 2, color: const Color(0xFF1A3A5C)),
             Expanded(
-              child: StationList(stations: _stations),
+              child: StationList(stations: _stations, loaded: _stationsLoaded),
             ),
           ],
         ),
