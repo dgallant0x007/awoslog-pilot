@@ -51,12 +51,6 @@
 	<string>AWOSLOG Pilot uses the barometer sensor to compute real-time density altitude at your position.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>AWOSLOG Pilot uses your location to show nearby weather stations, compute groundspeed and density altitude, and display traffic positions relative to you.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>AWOSLOG Pilot uses background location to keep weather stations and traffic updated relative to your position while flying.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>location</string>
-	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

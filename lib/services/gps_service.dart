@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:geolocator/geolocator.dart';
 import '../models/position.dart';
 
@@ -26,11 +25,6 @@ class GpsService {
     }
     if (permission == LocationPermission.deniedForever) return false;
 
-    // Request "always" permission for background tracking.
-    if (permission == LocationPermission.whileInUse) {
-      permission = await Geolocator.requestPermission();
-    }
-
     return permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always;
   }
@@ -38,37 +32,14 @@ class GpsService {
   void start({required void Function(PilotPosition) onPosition}) {
     stop();
 
-    final LocationSettings settings;
-
-    if (Platform.isAndroid) {
-      settings = AndroidSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-        intervalDuration: const Duration(seconds: 10),
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
-          notificationTitle: 'AWOSLOG Pilot',
-          notificationText: 'Weather and traffic active',
-          enableWakeLock: true,
-          notificationChannelName: 'Flight Tracking',
-          notificationIcon: AndroidResource(name: 'ic_launcher', defType: 'mipmap'),
-          setOngoing: true,
-        ),
-      );
-    } else {
-      settings = AppleSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-        activityType: ActivityType.airborne,
-        pauseLocationUpdatesAutomatically: false,
-        showBackgroundLocationIndicator: true,
-        allowBackgroundLocationUpdates: true,
-      );
-    }
+    const settings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
+    );
 
     _subscription = Geolocator.getPositionStream(
       locationSettings: settings,
     ).listen((pos) {
-      // Skip invalid positions.
       if (pos.latitude == 0 && pos.longitude == 0) return;
 
       final pilotPos = PilotPosition.fromGeolocator(
@@ -82,7 +53,6 @@ class GpsService {
 
       _lastPosition = pilotPos;
 
-      // Throttle: only record at most once per _minInterval.
       final now = DateTime.now();
       if (_lastRecorded != null && now.difference(_lastRecorded!) < _minInterval) {
         return;
