@@ -41,6 +41,7 @@ List<TrafficTarget> processTraffic({
 
   for (final ac in aircraft) {
     if (ac.onGround) continue;
+    if (ac.lat == 0 && ac.lon == 0) continue;
     if (ac.altitude > Config.trafficMaxAltitudeFt) continue;
 
     final relAlt = ac.altitude - myAltFt.round();
@@ -65,4 +66,21 @@ List<TrafficTarget> processTraffic({
 
   targets.sort((a, b) => a.distanceNm.compareTo(b.distanceNm));
   return targets;
+}
+
+/// Merge network (airplanes.live) and Stratux (local Beast) aircraft lists.
+/// Dedupes by uppercase hex; on collision the Stratux entry wins because
+/// the local receiver has fresher data than the aggregator API.
+List<Aircraft> mergeAircraft({
+  required List<Aircraft> network,
+  required List<Aircraft> stratux,
+}) {
+  final byHex = <String, Aircraft>{};
+  for (final ac in network) {
+    byHex[ac.icao24.toUpperCase()] = ac;
+  }
+  for (final ac in stratux) {
+    byHex[ac.icao24.toUpperCase()] = ac;
+  }
+  return byHex.values.toList();
 }

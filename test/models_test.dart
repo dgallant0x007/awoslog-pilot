@@ -23,6 +23,53 @@ void main() {
       expect(aircraft.altitude, 8500);
       expect(aircraft.onGround, false);
     });
+
+    test('parses Stratux schema using hex and speed', () {
+      // /api/stratux/aircraft uses `hex` (uppercase) and `speed`
+      // instead of airplanes.live's `icao24` (lowercase) and `velocity`.
+      final json = {
+        'hex': 'A0C0F6',
+        'callsign': 'N12345',
+        'lat': 38.82,
+        'lon': -105.89,
+        'altitude': 8500,
+        'speed': 95,
+        'heading': 247.0,
+        'reg': 'N12345',
+        'type': 'PA18',
+        'source': 'beast-bee0003c-a196-0046-bee0-003ca1960046',
+      };
+      final aircraft = Aircraft.fromJson(json);
+      expect(aircraft.icao24, 'A0C0F6');
+      expect(aircraft.velocity, 95);
+      expect(aircraft.altitude, 8500);
+    });
+
+    test('source defaults to network when absent', () {
+      final aircraft = Aircraft.fromJson({
+        'icao24': 'a0c0f6',
+        'lat': 38.0,
+        'lon': -105.0,
+      });
+      expect(aircraft.source, AircraftSource.network);
+    });
+
+    test('source is adsb when JSON source field starts with beast or stratux', () {
+      final beast = Aircraft.fromJson({
+        'hex': 'A0C0F6',
+        'lat': 38.0,
+        'lon': -105.0,
+        'source': 'beast-abc123',
+      });
+      final stratux = Aircraft.fromJson({
+        'hex': 'A0C0F6',
+        'lat': 38.0,
+        'lon': -105.0,
+        'source': 'stratux-xyz',
+      });
+      expect(beast.source, AircraftSource.adsb);
+      expect(stratux.source, AircraftSource.adsb);
+    });
   });
 
   group('Port', () {

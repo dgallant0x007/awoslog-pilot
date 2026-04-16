@@ -109,11 +109,15 @@ class _CockpitScreenState extends State<CockpitScreen> with WidgetsBindingObserv
 
   Future<void> _fetchTraffic() async {
     if (_flightData.lat == 0 && _flightData.lon == 0) return;
-    _rawAircraft = await _api.fetchAircraft(
-      _flightData.lat,
-      _flightData.lon,
-      Config.trafficRadiusNm,
-    );
+    final results = await Future.wait([
+      _api.fetchAircraft(
+        _flightData.lat,
+        _flightData.lon,
+        Config.trafficRadiusNm,
+      ),
+      _api.fetchStratuxAircraft(),
+    ]);
+    _rawAircraft = mergeAircraft(network: results[0], stratux: results[1]);
     _trafficLoaded = true;
     _recomputeTraffic();
     if (mounted) setState(() {});

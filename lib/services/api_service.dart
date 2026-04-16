@@ -49,4 +49,16 @@ class ApiService {
       return [];
     }
   }
+
+  Future<List<Aircraft>> fetchStratuxAircraft() async {
+    try {
+      final response = await client.get(Uri.parse('$baseUrl/api/stratux/aircraft'));
+      if (response.statusCode != 200) return [];
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      final List<dynamic> list = (json['aircraft'] as List<dynamic>?) ?? [];
+      return list.map((j) => Aircraft.fromJson(j)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
 }

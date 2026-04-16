@@ -7,9 +7,12 @@ Aircraft _makeAircraft({
   required double lon,
   required int altitude,
   bool onGround = false,
+  String icao24 = 'test',
+  String reg = '',
+  AircraftSource source = AircraftSource.network,
 }) {
   return Aircraft(
-    icao24: 'test',
+    icao24: icao24,
     callsign: 'TEST',
     lat: lat,
     lon: lon,
@@ -19,7 +22,8 @@ Aircraft _makeAircraft({
     onGround: onGround,
     type: '',
     category: '',
-    reg: '',
+    reg: reg,
+    source: source,
   );
 }
 
@@ -94,6 +98,57 @@ void main() {
         myTrackDeg: 247.0,
       );
       expect(targets, isEmpty);
+    });
+
+    test('skips Mode-S-only contacts with no position', () {
+      // Stratux can return aircraft with hex but no lat/lon (Mode-S
+      // beacon seen but no ADS-B position yet). These would compute
+      // bogus distance/bearing if processed.
+      final aircraft = [
+        _makeAircraft(lat: 0, lon: 0, altitude: 0, icao24: 'modeS'),
+        _makeAircraft(lat: 38.83, lon: -105.89, altitude: 8000, icao24: 'real'),
+      ];
+      final targets = processTraffic(
+        aircraft: aircraft,
+        myLat: 38.8249,
+        myLon: -105.8928,
+        myAltFt: 7840,
+        myTrackDeg: 247.0,
+      );
+      expect(targets.length, 1);
+    });
+  });
+
+  group('mergeAircraft', () {
+    test('combines unique aircraft from both sources', () {
+      final network = [
+        _makeAircraft(lat: 38.0, lon: -105.0, altitude: 8000, icao24: 'aaa111'),
+      ];
+      final stratux = [
+        _makeAircraft(lat: 39.0, lon: -106.0, altitude: 9000, icao24: 'BBB222',
+            source: AircraftSource.adsb),
+      ];
+      final merged = mergeAircraft(network: network, stratux: stratux);
+      expect(merged.length, 2);
+    });
+
+    test('Stratux wins on hex collision (case-insensitive)', () {
+      final network = _makeAircraft(
+          lat: 38.0, lon: -105.0, altitude: 8000, icao24: 'a0c0f6', reg: 'NETWORK');
+      final stratux = _makeAircraft(
+          lat: 38.5, lon: -105.5, altitude: 8500, icao24: 'A0C0F6', reg: 'STRATUX',
+          source: AircraftSource.adsb);
+      final merged = mergeAircraft(network: [network], stratux: [stratux]);
+      expect(merged.length, 1);
+      expect(merged.first.reg, 'STRATUX');
+      expect(merged.first.source, AircraftSource.adsb);
+    });
+
+    test('handles empty inputs', () {
+      expect(mergeAircraft(network: [], stratux: []), isEmpty);
+      final ac = _makeAircraft(lat: 38.0, lon: -105.0, altitude: 8000);
+      expect(mergeAircraft(network: [ac], stratux: []).length, 1);
+      expect(mergeAircraft(network: [], stratux: [ac]).length, 1);
     });
   });
 }
