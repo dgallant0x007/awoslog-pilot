@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 import '../models/aircraft.dart';
 import '../models/station.dart';
 
@@ -10,9 +11,16 @@ class ApiService {
   ApiService({required this.baseUrl, http.Client? client})
       : client = client ?? http.Client();
 
+  Map<String, String> get _headers => {
+    'X-API-Key': Config.apiKey,
+  };
+
   Future<List<Port>> fetchPorts() async {
     try {
-      final response = await client.get(Uri.parse('$baseUrl/api/ports'));
+      final response = await client.get(
+        Uri.parse('$baseUrl/api/v1/stations'),
+        headers: _headers,
+      );
       if (response.statusCode != 200) return [];
       final List<dynamic> json = jsonDecode(response.body);
       return json.map((j) => Port.fromJson(j)).toList();
@@ -23,7 +31,10 @@ class ApiService {
 
   Future<List<LatestMetar>> fetchLatest() async {
     try {
-      final response = await client.get(Uri.parse('$baseUrl/api/latest'));
+      final response = await client.get(
+        Uri.parse('$baseUrl/api/v1/weather'),
+        headers: _headers,
+      );
       if (response.statusCode != 200) return [];
       final List<dynamic> json = jsonDecode(response.body);
       return json.map((j) => LatestMetar.fromJson(j)).toList();

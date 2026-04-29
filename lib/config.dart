@@ -1,5 +1,6 @@
 class Config {
   static const String apiBaseUrl = 'https://awoslog.com';
+  static const String apiKey = '9c2d141c08fcf2cd55568f03ba7de519';
 
   // Poll rates
   static const Duration trafficPollFast = Duration(seconds: 3);

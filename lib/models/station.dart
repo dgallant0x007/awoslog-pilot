@@ -63,9 +63,9 @@ class LatestMetar {
       visibility: (json['visibility'] as num?)?.toDouble() ?? 0.0,
       windSpeed: json['wind_speed'] as int? ?? 0,
       windGust: json['wind_gust'] as int? ?? 0,
-      windAngle: json['wind_angle'] as int? ?? 0,
+      windAngle: (json['wind_direction'] ?? json['wind_angle']) as int? ?? 0,
       tempC: json['temp_c'] as int? ?? 0,
-      barometer: (json['barometer'] as num?)?.toDouble() ?? 0.0,
+      barometer: ((json['pressure'] ?? json['barometer']) as num?)?.toDouble() ?? 0.0,
       wx: json['wx'] as String? ?? '',
     );
   }
